@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import time
 import math
 
-a = 3696   
-e = 0.0088  
-T = 6720  
+a = 43200   
+e = 0.736
+T = 26121  
 
 t = np.linspace(0, T, 1000)
 M = t / T * 2 * np.pi
