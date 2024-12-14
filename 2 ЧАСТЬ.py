@@ -1,116 +1,53 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-a = 3696  
-e = 0.0088  
-T = 6720  
-mu = 42800 
+mu = 398600  #гравитационный параметр
+e = 0.736  #эксцентриситет
+a = 43200          #большая полуось, км
+T = 26121 #период, с
 
-def anomaly(t, T):
+# Временные точки
+time = np.linspace(0, T, 1000)
 
-    n = 2 * np.pi / T
-    M = n * t
-    return M
+# Вычисление аномалий
+M = 2 * np.pi * time / T
+E = M
+for _ in range(10):
+    E = M + e * np.sin(E)
+theta = 2 * np.arctan(np.sqrt((1 + e) / (1 - e)) * np.tan(E / 2))
 
-def newton_method(M, e):
+# Характеристики орбиты
+r = a * (1 - e**2) / (1 + e * np.cos(theta))
+vr = np.sqrt(mu / a) * e * np.sin(theta) / np.sqrt(1 - e**2)
+vt = np.sqrt(mu / a) * (1 + e * np.cos(theta)) / np.sqrt(1 - e**2)
+v = np.sqrt(vr**2 + vt**2)
 
-    E = M
-    for _ in range(100):
-        E_new = E - (E - e * np.sin(E) - M) / (1 - e * np.cos(E))
-        if abs(E_new - E) < 1e-6:
-            break
-        E = E_new
-    return E
+# Построение графиков
+plt.figure(figsize=(10, 8))
 
-def ecc_anomaly(M, e):
+plt.subplot(2, 2, 1)
+plt.plot(time, r)
+plt.title("Радиус-вектор от времени")
+plt.xlabel("Время, с")
+plt.ylabel("Радиус-вектор, км")
 
-    E = np.array([newton_method(m, e) for m in M])
-    return E
+plt.subplot(2, 2, 2)
+plt.plot(time, vr)
+plt.title("Радиальная скорость от времени")
+plt.xlabel("Время, с")
+plt.ylabel("Радиальная скорость, км/с")
 
-def true_anomaly(E, e):
+plt.subplot(2, 2, 3)
+plt.plot(time, vt)
+plt.title("Трансверсальная скорость от времени")
+plt.xlabel("Время, с")
+plt.ylabel("Трансверсальная скорость, км/с")
 
-    beta = np.sqrt((1 + e) / (1 - e))
-    nu = 2 * np.arctan(beta * np.tan(E / 2))
-    return nu
+plt.subplot(2, 2, 4)
+plt.plot(time, v)
+plt.title("Модуль скорости от времени")
+plt.xlabel("Время, с")
+plt.ylabel("Модуль скорости, км/с")
 
-def rad_vector(nu, a, e):
-
-    p = a * (1 - e**2)
-    r = p / (1 + e * np.cos(nu))
-    return r
-
-def radial_vel(nu, a, e, mu):
-
-    p = a * (1 - e**2)
-    Vr = np.sqrt(mu / p) * e * np.sin(nu)
-    return Vr
-
-def transvers_vel(nu, a, e, mu):
-
-    p = a * (1 - e**2)
-    Vn = np.sqrt(mu / p) * (1 + e * np.cos(nu))
-    return Vn
-
-def speed(Vn, Vr):
-
-    V = np.sqrt(Vn**2 + Vr**2)
-    return V
-
-def graphs(t, r, Vr, Vn, V):
-
-    plt.figure(figsize=(10, 10))
-
-    # График радиус-вектора
-    plt.subplot(2, 2, 1)
-    plt.plot(t, r, label='r (радиус-вектор)', color='blue')
-    plt.title('Радиус-вектор')
-    plt.xlabel('Время t (в секундах)')
-    plt.ylabel('r (м)')
-    plt.grid()
-    plt.legend()
-
-    # График радиальной скорости
-    plt.subplot(2, 2, 2)
-    plt.plot(t, Vr, label='Vr(t) (радиальная скорость)', color='red')
-    plt.title('Радиальная скорость')
-    plt.xlabel('Время t (в секундах)')
-    plt.ylabel('Vr (м/с)')
-    plt.grid()
-    plt.legend()
-
-    # График трансверсальной скорости
-    plt.subplot(2, 2, 3)
-    plt.plot(t, Vn, label='Vn(t) (трансверсальная скорость)', color='orange')
-    plt.title('Трансверсальная скорость')
-    plt.xlabel('Время t (в секундах)')
-    plt.ylabel('Vn (м/с)')
-    plt.grid()
-    plt.legend()
-
-    # График модуля скорости
-    plt.subplot(2, 2, 4)
-    plt.plot(t, V, label='V (модуль скорости)', color='pink')
-    plt.title('Модуль скорости')
-    plt.xlabel('Время t (в секундах)')
-    plt.ylabel('V (м/с)')
-    plt.grid()
-    plt.legend()
-
-    plt.tight_layout()
-    plt.show()
-
-def main():
-
-    t = np.linspace(0, T, 1000)
-    M = anomaly(t, T)
-    E = ecc_anomaly(M, e)
-    nu = true_anomaly(E, e)
-    r = rad_vector(nu, a, e)
-    Vr = radial_vel(nu, a, e, mu)
-    Vn = transvers_vel(nu, a, e, mu)
-    V = speed(Vn, Vr)
-    graphs(t / (24 * 3600), r, Vr, Vn, V)  
-
-if __name__ == "__main__":
-    main()
-
+plt.tight_layout()
+plt.show()
